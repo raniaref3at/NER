@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomedical Named Entity Recognition</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #c9ccf1d8;
+        }
+        h1, h4 {
+            text-align: center;
+            color: #2e629a;
+        }
+        #textInput {
+            width: 100%;
+            max-width: 600px;
+            height: 100px;
+            padding: 10px;
+            margin: 0 auto 20px;
+            border: 1.2px solid #2e629a;
+            border-radius: 5px;
+            resize: none;
+            display: block;
+        }
+        button {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 10px 20px;
+            background-color: #2e629a;
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            font-size: large;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #entityTable {
+            margin: 20px auto;
+            width: 80%;
+            border-collapse: collapse;
+            color: #2e629a;
+        }
+        #entityTable th {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        #entityTable td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        #entityTable th {
+            background-color: #f2f2f2;
+        }
+        .soft-highlight {
+            color: rgb(207, 112, 207);
+            background-color: #dfacd5d8;
+            opacity: 1;
+            font-size: large;
+        }
+        #allText {
+            background-color: #c9ccf1d8;
+            padding: 15px;
+            font-size: medium;
+            margin: 20px auto;
+            display: none;
+            width: 80%;
+            text-align: center;
+        }
+        #noEntities{
+            display: none;
+            text-align: center;
+            color: #2e629a;
+            font-size: large;
+            margin: 20px auto;
+        }
+        .img-container {
+            text-align: center;
+        }
+        .img-container img {
+            height: 300px; 
+            width: 300px;  
+        }
+        #empty{
+            display: none;
+            text-align: center;
+            color: #2e629a;
+            font-size: 30px;
+            margin: 20px auto;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Biomedical Named Entity Recognition</h1>
+    <textarea id="textInput" rows="4" placeholder="Enter your text here..."></textarea>
+    <button onclick="processText()">Analyse</button>
+    <div id="allText"></div>
+    <div class="img-container">
+        <img id="noEntities" src="/static/empty_image.png" alt="No Entities Found">
+        <h2 id="empty"> No Recognized Entities!</h2>
+    </div>
+    <table id="entityTable">
+        <thead>
+            <tr>
+                <th>Entity Name</th>
+                <th>Entity Group</th>
+                <th>Accuracy</th>
+            </tr>
+        </thead>
+        <tbody id="entityTableBody"></tbody>
+    </table>
+    <script>
+    let indexs = [];
+    async function processText() {
+        const text = document.getElementById("textInput").value;
+        const response = await fetch('/process_text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({text: text})
+        });
+        const data = await response.json();
+        displayEntities(data.entities);
+        if (data.entities.length > 0) {
+            highlightText(data.entities, text);
+        }
+    }
+
+    function displayEntities(entities) {
+        const entityTable = document.getElementById("entityTable");
+        const entityTableBody = document.getElementById("entityTableBody");
+        const allTextDiv = document.getElementById("allText");
+        const noEntitiesImg = document.getElementById("noEntities");
+        const empty = document.getElementById("empty");
+
+        
+        entityTableBody.innerHTML = "";
+        indexs = [];
+        
+        if (entities.length > 0) {
+            entities.forEach(entity => {
+                indexs.push(entity.index);
+                const row = entityTableBody.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                const cell3 = row.insertCell(2);
+                cell1.innerHTML = entity.Disease;
+                cell2.innerHTML = entity.entity_group;
+                cell3.innerHTML = entity.score;
+            });
+            entityTable.style.display = "table";
+            allTextDiv.style.display = "block";
+            noEntitiesImg.style.display = "none";
+            empty.style.display = "none";
+
+        } else {
+            entityTable.style.display = "none";
+            allTextDiv.style.display = "none";
+            noEntitiesImg.style.display = "block";
+            empty.style.display = "block";
+
+        }
+    }
+
+    function highlightText(entities, text) {
+        let highlightedText = text;
+        entities.forEach(entity => {
+            const regex = new RegExp(`\\b${entity.Disease}\\b`, 'g');
+            highlightedText = highlightedText.replace(regex, `<span class="soft-highlight">${entity.Disease}</span>`);
+        });
+        document.getElementById("allText").innerHTML = `<h4>${highlightedText}</h4>`;
+    }
+    </script>
+</body>
+</html>
