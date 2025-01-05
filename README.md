@@ -115,6 +115,134 @@ Recall: 0.859794
 Precision: 0.846296
 From these results, it is clear that the best performance was achieved in Experiment 3, where BioBERT was fine-tuned on a combined NCBI and BC5CDR dataset.
 
+## API for Biomedical Named Entity Recognition (NER) Using BioBERT ##
+This FastAPI-based API provides a service for performing biomedical Named Entity Recognition (NER) on input text using a fine-tuned BioBERT model. The API extracts disease-related entities from biomedical text, and it supports both model inference and web-based user interaction.
+
+# Features #
+`Entity Extraction`: Extracts disease-related entities from biomedical texts.
+`Text Highlighting`: Entities are highlighted within the text, and a table of detected entities is returned.
+`Web Interface`: An HTML interface allows users to input text and see extracted entities in a structured table.
+# Prerequisites #
+Python 3.7+
+FastAPI for creating the web API
+Pydantic for data validation
+Transformers library from Hugging Face for the BioBERT model
+Uvicorn for serving the FastAPI application
+Installation:
+To set up and run the API, follow these steps:
+
+Clone the repository:
+
+`git clone https://github.com/your_username/bioBERT-NER-api.git
+cd bioBERT-NER-api`
+Create a virtual environment and activate it:
+
+
+`python3 -m venv venv`
+`source venv/bin/activate ` # On Windows, use `venv\Scripts\activate`
+Install dependencies:
+
+
+`pip install -r requirements.txt`
+Ensure that BioBERT model files are accessible:
+
+Download the BioBERT model (biobert-fine-tuned-ner) and place it in a local directory, then modify the model path in the code to point to the correct directory.
+
+# Run the API #
+
+You can run the FastAPI application using Uvicorn, which will start the server.
+
+
+`uvicorn backend:app --reload`
+The API will be accessible at `http://127.0.0.1:8000`
+
+This command runs the API in development mode with auto-reload enabled, meaning any changes you make to the code will automatically restart the server.
+
+Check the API Status:
+
+Open your browser and go to the following URL to confirm the API is running:
+
+arduino
+Copy code
+`http://127.0.0.1:8000`
+You should see the FastAPI welcome page.
+
+API Endpoints:
+POST /process_text
+
+Description: Processes the input text and returns the recognized biomedical entities.
+
+Request Body:
+
+`
+{
+  "text": "A patient with cancer was treated using new drugs."
+}
+`
+Response:
+
+`
+{
+  "entities": [
+    {
+      "entity_group": "Disease",
+      "score": 0.95,
+      "Disease": "cancer",
+      "start": 17,
+      "end": 23
+    },
+    {
+      "entity_group": "Drug",
+      "score": 0.92,
+      "Disease": "drugs",
+      "start": 47,
+      "end": 52
+    }
+  ]
+}`
+GET /
+
+Description: Serves the HTML interface to interact with the API through a web browser. This page allows users to input text, analyze it, and see the extracted entities in a table.
+
+# Usage #
+To test the API via cURL or Postman:
+
+You can send a POST request to /process_text with biomedical text in JSON format, and the API will return the recognized entities.
+
+Example using cURL:
+
+
+`curl -X 'POST' \
+  'http://127.0.0.1:8000/process_text' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "text": "The patient was diagnosed with leukemia and treated with chemotherapy."
+}'`
+Example Response:
+
+`
+{
+  "entities": [
+    {
+      "entity_group": "Disease",
+      "score": 0.94,
+      "Disease": "leukemia",
+      "start": 34,
+      "end": 42
+    },
+    {
+      "entity_group": "Treatment",
+      "score": 0.92,
+      "Disease": "chemotherapy",
+      "start": 59,
+      "end": 71
+    }
+  ]
+} `
+To interact with the API via the web interface:
+
+Open your browser and navigate to `http://127.0.0.1:8000`. You will see an HTML interface where you can input biomedical text, and upon clicking "Analyze," you will get the extracted entities displayed in a table.
+
 # Future Work #
 To further improve the performance, several areas can be explored:
 
